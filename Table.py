@@ -52,7 +52,7 @@ class Table:
                     If given, replaces the values in the columns of the rows
                     found with 'on' and 'where'.
                 flag: bool; default False
-                    if passed to self.get_value(). If True, will return a 
+                    Only passed to self.get_value(). If True, will return a 
                     pandas.DataFrame object, else will return a pandas.Series
                     object
             Notes
@@ -71,6 +71,7 @@ class Table:
             print("Warning: the 'where' value being searched for is {0}, not {1}".format(type(where), accepted_types_string))
         if column is not None and not isinstance(column, accepted_types):
             print("Warning: the column 'column' being requested is {0}, not {1}".format(type(column), accepted_types_string))
+        
         if where is None:
             element = self.df[on].values
         elif value is None:
