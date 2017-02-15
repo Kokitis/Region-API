@@ -263,6 +263,7 @@ class Dataset(Table):
 
 		return response
 
+
 class TableDataset(Dataset):
 	""" Parses tables that use column names to store time-series information.
 		Ex. State Name, State Code, Report, Census, *years...
@@ -393,7 +394,11 @@ class TableDataset(Dataset):
 		#if len(response) == 1 and not kwargs.get('forcelist', False): response = response[0]
 		return response
 
+
 class FlattenDataset(Dataset):
+	""" Parses a dataset formatted with one yearly observation per row.
+		Ex. Region Name, Population, Year
+		"""
 	@staticmethod
 	def _get_configuration(key):
 		if os.path.isabs(key):
@@ -408,6 +413,22 @@ class FlattenDataset(Dataset):
 				'name': "World Urbanization Prospects: The 2014 Revision",
 				'skiprows': 16,
 				'multiplier': 1E6,
+				'format': ['int', 'int']
+			},
+			"National Population 1776 - 2015.xlsx" : {
+				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population 1776 - 2015.xlsx",
+				'region columns': ['Country'],
+				'time column': 'Year',
+				'tags': ['Population', 'Historical', 'United States'],
+				'name': 'National Population by year 1776 - 2016',
+				'skiprows': 0,
+				'format': ['int', 'int']
+			},
+			"National Population Projections.xlsx": {
+				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population Projections.xlsx",
+				'region columns': ['Report'],
+				'tags': ['Population', 'Projection', 'United States'],
+				'name': "United States Population Projections",
 				'format': ['int', 'int']
 			}
 		}
@@ -440,8 +461,55 @@ class FlattenDataset(Dataset):
 		return response
 
 
+def flatten(io, sheetname = 0, static_columns = None, value_column = 'Value', filename = None):
+	""" Transforms a Table Dataset (which stores year variables as column names) to a 
+		flattened dataset (which stores each yearly observation as a separate row).
+		Parameters
+		----------
+			io: string, pandas.DataFrame
+				The filename or DataFrame oject to transform
+			sheetname: string; default 0
+				The sheet to load, if needed.
+			Value_column: string
+				THe name of the new value column.
+			filename: string
+				If provided, the flattened table will be saved as an excel spreadsheet.
+			static_columns: string; default None
+				If provided, these will be used as the columns for the new table.
+	"""
 
+	if isinstance(io, str):
+		df = pandas.read_excel(io, sheetname = sheetname)
+	else:
+		df = io
 
+	if static_columns is None:
+		static_columns = [i for i in df.columns if not (isinstance(i, int) or i.isdigit())]
+	years = sorted(i for i in df.columns if i not in static_columns)
+
+	table = list()
+	for index, row in df.iterrows():
+		staticline = {col: row[col] for col in static_columns}
+		for year in years:
+			if not _usable_value(row[year]): continue
+			yearly_line = staticline.copy()
+			yearly_line['Year'] = year
+			yearly_line[value_column] = row[year]
+			table.append(yearly_line)
+
+	table = pandas.DataFrame(table)
+
+	if filename is not None:
+		table.to_excel(filename)
+	return table
+
+def _usable_value(value):
+	_excluded_strings = {""}
+	if isinstance(value, str):
+		usable = value not in _excluded_strings and not value.is_space()
+	else:
+		usable = not math.isnan(value)
+	return usable
 class TimePlot:
 	def __init__(self, timeseries):
 		import matplotlib.pyplot as plt 
@@ -457,22 +525,25 @@ class TimePlot:
 
 
 
-if __name__ == "__main__":
+if False:
 	print("Running...")
 
 	#Other Sources:
-	#	http://unstats.un.org/unsd/snaama/dnllist.asp
+	#http://unstats.un.org/unsd/snaama/dnllist.asp
 
 	filename = "WUP2014-F11b-30_Largest_Cities_in_2014_by_time.xlsx"
 	#dataset = FlattenDataset(filename)
-	dataset = TableDataset("World City Location and Historical Population.xlsx")
+	dataset = FlattenDataset("National Population 1776 - 2015.xlsx")
 
-	response = dataset.request(['London, GBR', "New York-Newark, USA"], forcelist = True)
+	response = dataset.request(["United States"], 'Population', forcelist = True)
 	#response += dataset2.request(['London, GBR', 'New York-Newark, USA'], domain = 1800, forcelist = True)
 	pprint(response)
 	#response2= dataset.request('Los Angeles, CA')
 	#plot = TimePlot(response)
 	
 else:
-	pass
+	#def flatten(filename, sheetname = 0, static_columns = None, value_column = 'Value', filename = None):
+	inputfile = "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population 1776 - 2015.xlsx"
+	outputfile = "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\temp.xlsx"
+	flatten(io = inputfile, filename = outputfile, sheetname = "Other Projections", value_column = 'Population')
 
