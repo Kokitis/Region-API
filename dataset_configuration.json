@@ -1,0 +1,79 @@
+{	
+	"WUP2014-F11b-30_Largest_Cities_in_2014_by_time": {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\World\\Urban Areas\\WUP2014-F11b-30_Largest_Cities_in_2014_by_time.xlsx",
+		"region columns": ["Urban Agglomeration"],
+		"time column": "Year", 
+		"tags": ["Population", "Population Projection", "Cities"],
+		"name": "World Urbanization Prospects: The 2014 Revision",
+		"skiprows": 16,
+		"multiplier": 1000000,
+		"format": ["int", "int"],
+		"schema": "flat"
+	},
+	"National Population 1776 - 2015" : {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population 1776 - 2015.xlsx",
+		"region columns": ["Country"],
+		"time column": "Year",
+		"tags": ["Population", "Historical", "United States"],
+		"name": "National Population by year 1776 - 2016",
+		"skiprows": 0,
+		"format": ["int", "int"],
+		"schema": "flat"
+	},
+	"National Population Projections": {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population Projections.xlsx",
+		"region columns": ["Report"],
+		"tags": ["Population", "Projection", "United States"],
+		"name": "United States Population Projections",
+		"format": ["int", "int"]
+	},
+	
+	"US State Population Projections": {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\Population Projections\\US State Population Projections.xlsx",
+		"region columns": ["State Code", "State Name"],
+		"tags": ["Population Projection", "US States"],
+		"name": "US State Population Projections 2010 - 2040"
+	},
+	"Annual State Populations": {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\Annual State Populations.xlsx",
+		"region columns": ["State Code"],
+		"tags": ["Population", "US States"],
+		"name": "US State Populations 1900 - 2016"
+	},
+	"1790-2010_MASTER": {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\historical-us-city-populations-master\\data\\1790-2010_MASTER.xlsx",
+		"region columns": ["CityST"],
+		"tags": ["City", "Population", "Historical"],
+		"name": "Population of US Cities 1790 - 2010",
+		"format": ["int", "int"],
+		"schema": "table"
+	},
+	"Area by NUTS 3 region": {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\Europe\\Area by NUTS 3 region.xls",
+		"region columns": ["GEO", "GEO(L)/TIME"],
+		"tags": ["NUTS-3", "Area", "Europe"],
+		"name": "Area by NUTS-3 region",
+		"skiprows": 9
+	},
+	"Population on 1 January by age, sex and NUTS 2 region": {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\Europe\\Population on 1 January by age, sex and NUTS 2 region.xls",
+		"region columns": ["GEO", "GEO(L)/TIME"],
+		"tags": ["population", "nuts-2", "europe"],
+		"name": "Population of NUTS-2 Regions",
+		"skiprows": 10
+	},
+	"World City Location and Historical Population" : {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\Cities\\World City Location and Historical Population.xlsx",
+		"region columns": ["City-Country_Name", "City-Country_Code"],
+		"tags": ["population", "global", "city", "historical"],
+		"name": "World City Location and Historical Population",
+		"multiplier": 1000,
+		"format": ["int", "int"]
+	},
+	"County Population 1790 - 1990" : {
+		"filename": "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\County Population 1790 - 1990.xls",
+		"region columns": ["CountyST"],
+		"tags": ["population", "historical", "county"],
+		"name": "US County Populations 1810 - 1990"
+	}
+}

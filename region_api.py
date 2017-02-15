@@ -1,5 +1,6 @@
 import aux_tools
 import math
+import json
 import os
 import pandas
 import configparser
@@ -44,6 +45,7 @@ class Dataset(Table):
 		for col in region_columns:
 			unique_values[col] = set(self.df[col].values)
 		return unique_values
+	
 	def _get_sheetname(self, sheet):
 			if 'sheetname' in self.config: sheetname = self.config['sheetname']
 			else: sheetname = None
@@ -57,8 +59,18 @@ class Dataset(Table):
 				sheetname = sheetname[0]
 
 			return sheetname
+	@staticmethod
+	def _get_configuration(key):
+		if os.path.isabs(key):
+			key = os.path.basename(key)
+		with open('dataset_configuration.json', 'r') as file1:
+			config = json.loads(file1.read())
+		config = config[key]
+		print(config['filename'])
+		return config
 	def _child_init(self):
 		pass
+	
 	def _convert_horizontal_series(self, series):
 		""" Converts a series where the year values exist as column headers into the proper format """
 		if isinstance(series, pandas.DataFrame):
@@ -278,63 +290,6 @@ class TableDataset(Dataset):
 	def _child_init(self):
 		pass
 	
-	@staticmethod
-	def _get_configuration(key):
-		if os.path.isabs(key):
-			key = os.path.basename(key)
-
-		config = {
-			"US State Population Projections.xlsx": {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\Population Projections\\US State Population Projections.xlsx",
-				'region columns': ['State Code', 'State Name'],
-				'tags': ['Population Projection', 'US States'],
-				'name': "US State Population Projections 2010 - 2040"
-			},
-			"Annual State Populations.xlsx": {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\Annual State Populations.xlsx",
-				'region columns': ['State Code'],
-				'tags': ['Population', 'US States'],
-				'name': "US State Populations 1900 - 2016"
-			},
-			"1790-2010_MASTER.xlsx": {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\historical-us-city-populations-master\\data\\1790-2010_MASTER.xlsx",
-				'region columns': ['CityST'],
-				'tags': ['City', 'Population', 'Historical'],
-				'name': "Population of US Cities 1790 - 2010",
-				'format': ['int', 'int']
-			},
-			"Area by NUTS 3 region.xls": {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\Europe\\Area by NUTS 3 region.xls",
-				'region columns': ['GEO', 'GEO(L)/TIME'],
-				'tags': ['NUTS-3', 'Area', 'Europe'],
-				'name': "Area by NUTS-3 region",
-				'skiprows': 9
-			},
-			"Population on 1 January by age, sex and NUTS 2 region.xls": {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\Europe\\Population on 1 January by age, sex and NUTS 2 region.xls",
-				'region columns': ['GEO', 'GEO(L)/TIME'],
-				'tags': ['population', 'nuts-2', 'europe'],
-				'name': "Population of NUTS-2 Regions",
-				'skiprows': 10
-			},
-			"World City Location and Historical Population.xlsx" : {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\Cities\\World City Location and Historical Population.xlsx",
-				'region columns': ['City-Country_Name', 'City-Country_Code'],
-				'tags': ['population', 'global', 'city', 'historical'],
-				'name': "World City Location and Historical Population",
-				'multiplier': 1000,
-				'format': ['int', 'int']
-			},
-			"County Population 1790 - 1990.xls" : {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\County Population 1790 - 1990.xls",
-				'region columns': ['CountyST'],
-				'tags': ['population', 'historical', 'county'],
-				'name': "US County Populations 1810 - 1990"
-			}
-		}
-		config = config[key]
-		print(config['filename'])
-		return config
 
 	def _flatten(self, series, domain = None):
 		""" Converts a row (in dict form) from a timeseries dataset where years comprise column names.
@@ -399,43 +354,6 @@ class FlattenDataset(Dataset):
 	""" Parses a dataset formatted with one yearly observation per row.
 		Ex. Region Name, Population, Year
 		"""
-	@staticmethod
-	def _get_configuration(key):
-		if os.path.isabs(key):
-			key = os.path.basename(key)
-
-		config = {
-			"WUP2014-F11b-30_Largest_Cities_in_2014_by_time.xlsx": {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\World\\Urban Areas\\WUP2014-F11b-30_Largest_Cities_in_2014_by_time.xlsx",
-				'region columns': ['Urban Agglomeration'],
-				'time column': 'Year', 
-				'tags': ['Population', 'Population Projection', 'Cities'],
-				'name': "World Urbanization Prospects: The 2014 Revision",
-				'skiprows': 16,
-				'multiplier': 1E6,
-				'format': ['int', 'int']
-			},
-			"National Population 1776 - 2015.xlsx" : {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population 1776 - 2015.xlsx",
-				'region columns': ['Country'],
-				'time column': 'Year',
-				'tags': ['Population', 'Historical', 'United States'],
-				'name': 'National Population by year 1776 - 2016',
-				'skiprows': 0,
-				'format': ['int', 'int']
-			},
-			"National Population Projections.xlsx": {
-				'filename': "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population Projections.xlsx",
-				'region columns': ['Report'],
-				'tags': ['Population', 'Projection', 'United States'],
-				'name': "United States Population Projections",
-				'format': ['int', 'int']
-			}
-		}
-		config = config[key]
-		print(config['filename'])
-		return config
-	
 	def _flatten(self, series, key):
 		time_column = self.config.get('time column', 'Year')
 		time_series = list(zip(series[time_column].values, series[key]))
@@ -510,7 +428,9 @@ def _usable_value(value):
 	else:
 		usable = not math.isnan(value)
 	return usable
+
 class TimePlot:
+	#Used to plot called series and check values.
 	def __init__(self, timeseries):
 		import matplotlib.pyplot as plt 
 
@@ -522,20 +442,17 @@ class TimePlot:
 
 		plt.show()
 
-
-
-
-if False:
+if True:
 	print("Running...")
 
 	#Other Sources:
 	#http://unstats.un.org/unsd/snaama/dnllist.asp
 
-	filename = "WUP2014-F11b-30_Largest_Cities_in_2014_by_time.xlsx"
-	#dataset = FlattenDataset(filename)
-	dataset = FlattenDataset("National Population 1776 - 2015.xlsx")
+	filename = "1790-2010_MASTER"
+	dataset = TableDataset(filename)
+	#dataset = FlattenDataset("National Population 1776 - 2015")
 
-	response = dataset.request(["United States"], 'Population', forcelist = True)
+	response = dataset.request(["Philadelphia, PA"], 'Population', forcelist = True)
 	#response += dataset2.request(['London, GBR', 'New York-Newark, USA'], domain = 1800, forcelist = True)
 	pprint(response)
 	#response2= dataset.request('Los Angeles, CA')
@@ -547,3 +464,4 @@ else:
 	outputfile = "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\temp.xlsx"
 	flatten(io = inputfile, filename = outputfile, sheetname = "Other Projections", value_column = 'Population')
 
+#Line 551
