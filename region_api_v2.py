@@ -1,11 +1,13 @@
 import configparser
 import os
 import pandas
+import math
 
 import sys
 sys.path.append("D:\\Proginoskes\\Documents\\GitHub\\pytools")
 import tabletools
 import timetools
+import numbertools
 from pprint import pprint
 
 class Dataset(tabletools.Table):
@@ -90,7 +92,7 @@ class Dataset(tabletools.Table):
 		for element in series.items():
 
 			if element[0] in time_columns:
-				timeseries.append(element)
+				timeseries.append(numbertools.toNumber(element))
 			else:
 				other_data.append(element)
 		other_data = dict(other_data)
