@@ -29,6 +29,7 @@ class Dataset(tabletools.Table):
 		self.configuration = self._getDatasetConfiguration(name)
 
 		filename = self.configuration['filename']
+
 		kwargs = {"sheetname": 0}
 		super().__init__(filename, **kwargs)
 
@@ -44,8 +45,15 @@ class Dataset(tabletools.Table):
 		"""
 		configurations = [
 			{
+				'name': 'World Development Indicators',
+				'filename': os.path.join(DATA_FOLDER,
+					"Global Tables", "World Development Indicators.txt"),
+				'keyRegionCodeColumn': 'countryCode'
+
+			},
+			{
 				'name': 'World Economic Outlook',
-				'filename': "data\\World Economic Outlook.tsv", #Filename
+				'filename': os.path.join(DATA_FOLDER, "Global Tables", "World Economic Outlook.xlsx"), #Filename
 				'keyRegionCodeColumn': 'countryCode' #The column that defines the region codes.
 			},
 			{
@@ -62,15 +70,28 @@ class Dataset(tabletools.Table):
 		"""
 		result = {'timeseries': [], 'dataseries': []}
 		for column in columns:
-			is_number_type = isinstance(column, (int, float))
-			is_number_string = column.isdigit()
-			is_number = is_number_type or is_number_string
+			is_number = numbertools.isNumber(column) or column.isdigit()
 
 			if is_number: result['timeseries'].append(column)
 			else: result['dataseries'].append(column)
 
 		return result
-
+	def _getScaleMultiplier(self, value):
+		if isinstance(value, str):
+			string = value.lower()
+			if string == 'trillions':
+				multiplier = 1E12
+			elif string == 'billions':
+				multiplier = 1E9
+			elif string == 'millions':
+				multiplier = 1000000
+			elif string == 'thousands':
+				multiplier = 1000
+			else:
+				multiplier = 1
+		else:
+			multiplier = value
+		return multiplier
 	def _getIdentifierFields(self, series):
 		""" Extracts region identifiers from the series. Includes
 			region names and region codes.
@@ -93,30 +114,44 @@ class Dataset(tabletools.Table):
 			----------
 				series: dict-like
 		"""
-
-		columns = self._catagorizeColumns(series.index)
-
 		timeseries = list()
 		other_data = list()
-		for element in series.items():
+		if series is None:
+			columns = list()
+			identifiers = list()
+			series = dict()
+			response_status = False
+		else:
+			response_status = True
+			columns = self._catagorizeColumns(series.index)
+			identifiers = self._getIdentifierFields(series)
 
-			if element[0] in columns['timeseries']:
-				timeseries.append(numbertools.toNumber(element))
+
+		for column, value in series.items():
+			if column in columns['timeseries']:
+				value = numbertools.toNumber(value)
+				column= numbertools.toNumber(column)
+				if 'scale' in series:
+					multiplier = self._getScaleMultiplier(series['scale'])
+					value *= multiplier
+				timeseries.append((column, value))
 			else:
-				other_data.append(element)
+				other_data.append((column, value))
 		other_data = dict(other_data)
-		#pprint(timeseries)
 
-		other_data['timeRange'] = [min(timeseries, key = lambda s:s[0])[0],
-								   max(timeseries, key = lambda s:s[0])[0]]
-		other_data['dataRange'] = [min(timeseries, key = lambda s:s[1])[1],
-								   max(timeseries, key = lambda s:s[1])[1]]	
+		if len(timeseries) > 0:
+			other_data['timeRange'] = [min(timeseries, key = lambda s:s[0])[0],
+									   max(timeseries, key = lambda s:s[0])[0]]
+			other_data['dataRange'] = [min(timeseries, key = lambda s:s[1])[1],
+									   max(timeseries, key = lambda s:s[1])[1]]
+		else:
+			other_data['timeRange'] = []
+			other_data['datarange'] = []
 
-
-		identifiers = self._getIdentifierFields(series)
 		response = {
 			'data': other_data,
 			'availableFields': list(other_data.keys()),
+			'response': response_status,
 			'timeseries': timeseries
 		}
 		if len(identifiers) != 0:
@@ -164,35 +199,71 @@ class Dataset(tabletools.Table):
 
 	def _generalDescription(self):
 		pprint(self.columns)
+class Datasets:
+	""" Manages several separate datasets.
+	"""
+	def __init__(self, datasets):
+		""" 
+			Parameters
+			----------
+				datasets: list<string>
+					list of datasets to load.
+		"""
+		self.datasets = [Dataset(i) for i in datasets]
+	def __call__(self, criteria):
+		result = [dataset(criteria) for dataset in self.datasets]
+		return result
+class GeoChart:
+	""" Easily plots and compares different series.
+	"""
+class ComparisonTable:
+	def __init__(self, left, right):
+		table = PrettyTable(field_names = ['Year', 'Left', 'Right'])
+		left_timeseries = left['timeseries']
+		right_timeseries= right['timeseries']
+		left_timeseries = dict(left_timeseries)
+		right_timeseries= dict(right_timeseries)
+		
+		#help(table)
+		for year in left_timeseries.keys():
+			table.add_row([year, left_timeseries[year], right_timeseries.get(year)])
+		print(table)
+def Plot(series):
+	plot = plottools.PyplotXY()
+	if isinstance(series, dict):
+		series = series['timeseries']
+	plot.addSeries(series)
+	plot.render()
 
-
-def test():
-	dataset = Dataset('USA City Populations')
+def testDataset():
+	subject_code = 'SP.POP.TOTL'
 	databox = Databox()
-	criteria = [('cityStName', 'Pittsburgh, PA')]
-	left = dataset.request(criteria)
-	right= dataset.request([('cityStName', 'Cleveland, OH')])
-	left = left['timeseries']
-	right= right['timeseries']
-	comparison = databox.compare(left, right)
-	#plot = plottools.PyplotXY()
-	#plot.addSeries(series = comparison)
-	#plot.addSeries(series = right)
-	#plot.render()
-	databox.generateTable(left)
-	#dataset._subjectList()
-if __name__ == "__main__" and True:
-	test()
-	"""
 	timer = timetools.Timer()
-	dataset = Dataset('World Economic Outlook')
-	timer.timeit()
+	left_dataset = Dataset('World Development Indicators')
+	right_dataset= Dataset('World Economic Outlook')
+	#dataset._subjectList()
 	
+	left_criteria = [('countryCode', 'USA'), ('subjectCode', 'SP.POP.TOTL')]
+	right_criteria= [('countryCode', 'USA'), ('subjectCode', 'LP')]
+	left = left_dataset.request(left_criteria)
+	right= right_dataset.request(right_criteria)
+	#left = left['timeseries']
+	#right= right['timeseries']
+	#dataset._subjectList()
+	#comparison = databox(left, right, 'ratio')
+	#pprint(comparison)
+	#Plot(comparison)
+	ComparisonTable(left = left, right = right)
+def testDatasets():
+	left_criteria = [('countryCode', 'AAA'), ('subjectCode', subject_code)]
 
-	series = dataset.request(criteria)
-	#series = dataset(criteria)
-	#pprint(series)
-	pprint(dataset._subjectList())
-	"""
+EQUIVILANT_CODES = {
+	'population': {
+		'World Development Indicators': 'SP.POP.TOTL',
+		'World Economic Outlook': 'LP'
+	}
+}
 
+if __name__ == "__main__" and True:
+	testDataset()
 
