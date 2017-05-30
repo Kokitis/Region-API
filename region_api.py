@@ -8,7 +8,9 @@ import collections
 from fuzzywuzzy import process
 from pprint import pprint
 from scipy.interpolate import interp1d
-from Table import Table
+import sys
+sys.path.append("D:\\Proginoskes\\Documents\\GitHub\\pytools")
+import tabletools
 
 DEFAULT_RATIO = 90 #The default cuttoff when using fuzzywuzzy.
 
@@ -379,6 +381,7 @@ class FlattenDataset(Dataset):
 		return response
 
 
+
 def flatten(io, sheetname = 0, static_columns = None, value_column = 'Value', filename = None):
 	""" Transforms a Table Dataset (which stores year variables as column names) to a 
 		flattened dataset (which stores each yearly observation as a separate row).
@@ -442,7 +445,7 @@ class TimePlot:
 
 		plt.show()
 
-if True:
+if False:
 	print("Running...")
 
 	#Other Sources:
@@ -459,9 +462,9 @@ if True:
 	#plot = TimePlot(response)
 	
 else:
-	#def flatten(filename, sheetname = 0, static_columns = None, value_column = 'Value', filename = None):
-	inputfile = "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\National Population 1776 - 2015.xlsx"
-	outputfile = "C:\\Users\\Deitrickc\\Google Drive\\Data\\United States\\Population\\temp.xlsx"
-	flatten(io = inputfile, filename = outputfile, sheetname = "Other Projections", value_column = 'Population')
+	for k, v in sorted(os.environ.items()):
+		print(k, v)
+	for fn in os.listdir(os.path.join(os.getenv('USERPROFILE'), 'Documents')):
+		print(fn)
 
 #Line 551
