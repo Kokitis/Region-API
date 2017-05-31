@@ -3,17 +3,25 @@ import os
 import pandas
 import math
 import sys
+
 GITHUB_FOLDER = "D:\\Proginoskes\\Documents\\GitHub\\"
+if not os.path.exists(GITHUB_FOLDER):
+	GITHUB_FOLDER = os.path.expanduser("~\\Documents\\Github\\")
+print(GITHUB_FOLDER)
 sys.path.append(GITHUB_FOLDER)
+
 import pytools.tabletools as tabletools
 import pytools.timetools as timetools
 import pytools.numbertools as numbertools
 import pytools.plottools as plottools
+
 from databox import Databox
 from pprint import pprint
 from prettytable import PrettyTable
 
 DATA_FOLDER = "D:\\Proginoskes\\Documents\\Data\\Harmonized Data\\"
+if not os.path.exists(DATA_FOLDER):
+	DATA_FOLDER = os.path.expanduser("~\\Google Drive\\Harmonized Data\\")
 
 class Dataset(tabletools.Table):
 	"""
@@ -30,7 +38,9 @@ class Dataset(tabletools.Table):
 
 		filename = self.configuration['filename']
 
-		kwargs = {"sheetname": 0}
+		kwargs = {
+			'sheetname': self.configuration.get('sheetname', 0)
+		}
 		super().__init__(filename, **kwargs)
 
 	def _getDatasetConfiguration(self, name):
@@ -44,6 +54,12 @@ class Dataset(tabletools.Table):
 			}
 		"""
 		configurations = [
+			{
+				'name': 'Historical Country Profiles',
+				'filename': os.path.join(DATA_FOLDER, "World", "Historical Country Population and GDP.xlsx"),
+				'keyRegionCodeColumn': "countryCode",
+				'sheetname': "Combined"
+			},
 			{
 				'name': 'World Development Indicators',
 				'filename': os.path.join(DATA_FOLDER,
@@ -242,12 +258,12 @@ def testDataset():
 	subject_code = 'SP.POP.TOTL'
 	databox = Databox()
 	timer = timetools.Timer()
-	left_dataset = Dataset('World Development Indicators')
+	left_dataset = Dataset('Historical Country Profiles')
 	#right_dataset= Dataset('World Economic Outlook')
 	#dataset._subjectList()
 	
-	left_criteria = [('countryCode', 'AUS'), ('subjectCode', 'SP.POP.TOTL')]
-	right_criteria= [('countryCode', 'CAN'), ('subjectCode', 'SP.POP.TOTL')]
+	left_criteria = [('countryCode', 'GBR'), ('subjectCode', 'GDP')]
+	right_criteria= [('countryCode', 'FRA'), ('subjectCode', 'GDP')]
 	left = left_dataset.request(left_criteria)
 	right= left_dataset.request(right_criteria)
 	#left = left['timeseries']
