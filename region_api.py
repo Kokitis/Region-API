@@ -277,8 +277,15 @@ def testDataset():
 
 EQUIVILANT_CODES = {
 	'population': {
+		'Historical Country Profiles': 'POP'
 		'World Development Indicators': 'SP.POP.TOTL',
 		'World Economic Outlook': 'LP'
+	},
+	'gross domestic product': {
+		'Historical Country Profiles': 'GDP'
+	}
+	'gross domestic product per capita': {
+		'Historical Country Profiles': 'GDPPC'
 	}
 }
 
