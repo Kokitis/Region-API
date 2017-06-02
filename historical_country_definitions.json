@@ -1,0 +1,36 @@
+[
+	{
+		"baseCode": "GBR",
+		"description": "",
+		"name": "United Kingdom of Great Britain and Ireland",
+		"definition":{
+			"GBR:1900": ["GBR", "IRL"]
+		}
+	},
+	{
+		"basecode": "EU",
+		"description": "",
+		"name": "European Union",
+		"definition": {
+			"EU:2017": []
+		}
+	},
+	{
+		"basecode": "ROME",
+		"description": "",
+		"definition": {
+		},
+		"name": "Roman Empire",
+		"timeline": {
+			"from": "27 BC",
+			"to":   "1453 AD",
+			"max":  "117 AD"
+		} 
+	},
+	{
+		"basecode": "USSR",
+		"description": "",
+		"name": "Soviet Union",
+		"definition": []
+	}
+]
